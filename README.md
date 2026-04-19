@@ -6,6 +6,8 @@ Instantly search and switch to any open [Comet](https://browser.comet.com/) tab 
 ![macOS](https://img.shields.io/badge/macOS-13%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+![Comet Tabs in action](screenshot.png)
+
 ## Features
 
 - **Fuzzy search** all open Comet tabs across every window
