@@ -64,6 +64,14 @@ cd /path/to/this/repo
 zip -r Comet-Tabs.alfredworkflow info.plist list-tabs-comet.js focus-tab-comet.js
 ```
 
+## Changelog
+
+### 1.0.1
+- **Fixed:** selecting a tab sometimes required two attempts to bring it forward — especially across multiple monitors/Spaces. The window-raise logic read the window title only 50 ms after switching tabs, before it had updated to the new tab, so the first attempt matched the wrong window. It now waits for the title to settle before activating, re-asserts Comet as frontmost during the raise, and extends the retry deadline.
+
+### 1.0.0
+- Initial release: fuzzy-search and switch to any open Comet tab across all windows and Spaces.
+
 ## License
 
 MIT
