@@ -14,10 +14,27 @@ function run(args) {
   // 2. Make this the app's frontmost window (z-order within Comet)
   try { win.index = 1; } catch(e) {}
 
-  // 3. Let the tab switch settle so win.title() reflects the new active tab
-  delay(0.05);
+  // 3. Let the tab switch settle so win.title() reflects the NEW active tab.
+  //    A Comet window's title == its active tab's title, and it does NOT update
+  //    in 50ms — with that too-short delay winTitle held the OLD tab's title, so
+  //    the raise loop below matched the wrong window and you had to run it twice.
+  //    Read the title, and if it hasn't changed yet, wait a little longer.
   let winTitle = "";
   try { winTitle = win.title(); } catch(e) {}
+  {
+    const titleDeadline = Date.now() + 600;
+    let prev = winTitle;
+    delay(0.12);
+    while (Date.now() < titleDeadline) {
+      let t = "";
+      try { t = win.title(); } catch(e) {}
+      if (t && t !== "") { winTitle = t; }
+      // once the title is non-empty and stable across a tick, trust it
+      if (t && t === prev) break;
+      prev = t;
+      delay(0.06);
+    }
+  }
 
   // 4. Activate — triggers Space switch to the frontmost window's Space.
   //    NOTE: only call activate() once. A second activate() causes Space overshoot.
@@ -27,7 +44,7 @@ function run(args) {
   //    with a single AXRaise. Retry until the matching window is actually
   //    frontmost, or we hit a short deadline.
   const proc = Application("System Events").processes["Comet"];
-  const deadline = Date.now() + 1500;
+  const deadline = Date.now() + 2000;
   while (Date.now() < deadline) {
     delay(0.08);
     let frontmostMatches = false;
@@ -42,6 +59,9 @@ function run(args) {
           }
         } catch(e2) {}
       }
+      // Re-assert Comet as frontmost app if Alfred's dismissal stole focus
+      // (cheap + idempotent; only when it isn't already frontmost — avoids Space overshoot).
+      try { if (!proc.frontmost()) proc.frontmost = true; } catch(e4) {}
       // Verify: top window should be ours AND Comet should be frontmost app
       try {
         const topTitle = proc.windows[0].title();
